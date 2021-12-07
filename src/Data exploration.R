@@ -1,10 +1,8 @@
 #################
 #DATA EXPLORATION
 #################
-setwd(dir = "../data/bronze")
-
-train <- read.csv("train.csv")
-test_X <- read.csv("test.csv")
+train <- read.csv("../data/bronze/train.csv")
+test_X <- read.csv("../data/bronze/test.csv")
 head(train)
 
 #Create our training sets
@@ -90,16 +88,18 @@ sum(is.na(train_X$application_type)) #no missing values
 unique(train_X$application_type) #3 different categories: Individual, Direct_Pay and Joint --> create dummy variables on the 3? 
 
 #how many times does every category occurs
-table(train_X$application_type) #direct pay: 75, individual: 70813, joint: 66 
+table(train_X$application_type, useNA = "ifany") #direct pay: 75, individual: 70813, joint: 66 
+barplot(prop.table(table(train_X$application_type)))
 
 #in my opinion: just add this var as dummy variables 
 
 #################
 #6) date funded: the month and year in which the loan was funded 
 #################
-
+sum(is.na(train_X$date_funded)) #0
 #convert to dates, create some kind of recency to know how it has been since loan was funded. 
-#idea: the longer ago the loan was funded, the more likely they are to repay them 
+#idea: the longer ago the loan was funded, the more likely they are to repay them
+#Input Sam: the thing is, there are no "current loans", so then we should create a date-var for when the loan terminated
 sort(train_X$date_funded, FALSE) #no weird dates
 
 
@@ -128,3 +128,67 @@ head(train_X)
 
 #missing values? 
 sum(is.na(train_X$emp_length)) # 4591 missing values/emp_lengths 
+table(train_X$emp_length, useNA = "ifany")
+
+barplot(prop.table(table(train_X$emp_length, useNA = "ifany")),las = 2)
+
+#grade
+sum(is.na(train_X$grade)) #no nan
+barplot(prop.table(table(train_X$grade, useNA = "ifany")),las = 2)
+
+#sub-grade
+sum(is.na(train_X$sub_grade)) #no nan
+barplot(prop.table(table(train_X$sub_grade, useNA = "ifany")),las = 2)
+
+#homestatus
+barplot(prop.table(table(train_X$home_status, useNA = "ifany")),las = 2)
+prop.table(table(train_X$home_status, useNA = "ifany"))
+
+#income_ver_status
+barplot(prop.table(table(train_X$income_verif_status, useNA = "ifany")),las = 2)
+prop.table(table(train_X$income_verif_status, useNA = "ifany"))
+
+#purpose
+barplot(prop.table(table(train_X$purpose, useNA = "ifany")),las = 2)
+prop.table(table(train_X$purpose, useNA = "ifany"))
+
+#interest_rate
+sum(is.na(train_X$interest_rate)) #no nan
+boxplot(train_X$interest_rate) #some outliers
+
+#monthly_payment =====> Maybe bin?
+
+sum(is.na(train_X$monthly_payment)) #2513 nan
+boxplot(train_X$monthly_payment) 
+#num_bankrupts
+
+sum(is.na(train_X$num_bankrupts)) #4670 nan
+barplot(prop.table(table(train_X$num_bankrupts, useNA = "ifany")),las = 2)
+prop.table(table(train_X$num_bankrupts, useNA = "ifany"))
+#num_mortgages
+sum(is.na(train_X$num_mortgages)) #6086 nan
+boxplot(train_X$num_mortgages)
+barplot(prop.table(table(train_X$num_mortgages, useNA = "ifany")),las = 2)
+prop.table(table(train_X$num_mortgages, useNA = "ifany"))
+
+#num_open_credit
+sum(is.na(train_X$num_open_credit)) #no nan
+boxplot(train_X$num_open_credit)
+barplot(prop.table(table(train_X$num_open_credit, useNA = "ifany")),las = 2)
+prop.table(table(train_X$num_open_credit, useNA = "ifany"))
+#num_records
+sum(is.na(train_X$num_records)) #4570 nan
+boxplot(train_X$num_records)
+barplot(prop.table(table(train_X$num_records, useNA = "ifany")),las = 2)
+prop.table(table(train_X$num_records, useNA = "ifany"))
+#num_total_credit ===> bin?
+sum(is.na(train_X$num_total_credit)) #2038
+boxplot(train_X$num_total_credit)
+barplot(prop.table(table(train_X$num_total_credit, useNA = "ifany")),las = 2)
+prop.table(table(train_X$num_total_credit, useNA = "ifany"))
+#revol_balance
+sum(is.na(train_X$revol_balance)) #no nan 
+boxplot(train_X$interest_rate)
+#revol_util
+sum(is.na(train_X$revol_util)) #1327 nan
+boxplot(train_X$revol_util)
