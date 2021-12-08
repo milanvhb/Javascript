@@ -49,5 +49,33 @@ test_X_fe[, num.cols] <- scale(test_X_fe[, num.cols], center = TRUE, scale = TRU
 train_y <- as.factor(train_y)
 
 
+############################
+# 2. STRING MANIPULATION   #
+############################
+
+#---------------EXAMPLE-FROM THE INTERNET-------------------#
+
+#        26376  Alpine   Lane, Twin Peaks,  CA    92391
+#       |_____| |_____| |____| |_________| |__|  |____|
+#     House nr. Str.nm Str.Type  City      State  Postal Code
+
+#---------------EXAMPLE-FROM THE INTERNET-------------------#
+
+# I'll make a new column state and delete the column address
+
+
+match <- regmatches(train_X_impute$address, regexec("[A-Z][A-Z]", train_X_impute$address))
+match <- regmatches(test_X_impute$address, regexec("[A-Z][A-Z]", test_X_impute$address))
+train_X_impute$state <- sapply(match, `[`, 1)
+test_X_impute$state <- sapply
+
+cats <- categories(train_X_encode[, c("State")], p = 10)
+
+col.to.drop <- c('address')
+train_X_impute = train_X_impute[ , ! names(train_X_impute) %in% col.to.drop]
+test_X_impute = test_X_impute[ , ! names(test_X_impute) %in% col.to.drop]
+
+
+
 
 
