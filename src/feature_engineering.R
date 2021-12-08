@@ -35,6 +35,9 @@ train_y <- train$default
 #TERM
 ############
 
+#binary coding: 
+#36 months --> 0 
+#60 months --> 1
 
 
 
@@ -60,7 +63,7 @@ train_y <- train$default
 #EMP_LENGTH
 ############
 
-#ordinal? 
+#as numerical! 
 
 
 
