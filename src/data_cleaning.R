@@ -210,12 +210,15 @@ write.csv(train_X_outlier, file= "../data/silver/train_cleaned_NA_data.csv")
 
 train_X_outlier = train_X_impute
 
-b_ai2 <- abs(scale(train_X_outlier$annual_income)) < 3 #INCREDIBLY skewed results, remove them all
-b_dti2 <- (train_X_outlier$debt_to_income < 1500) #Only one value that is bad (1600+), 
-#remove this value, also self reported so could be wrong data, remove!
-b_ir2 <- NULL #outliers are not really that bad 
-#and the values make sens, so we don't remove any of them (see boxplots)
-b_mp2 <- NULL # gradual increase of our outlier, 922 outliers but there are 
+b_ai2 <- abs(scale(train_X_outlier$annual_income)) < 3 
+#INCREDIBLY skewed results but income is mostly verified so valid, remove them all
+b_dti2 <- (train_X_outlier$debt_to_income < 1500) 
+#Only one value that is really bad (1600+), we assume it to be not valid and we 
+#remove the observation. It is also self reported so could be wrong data, remove!
+b_ir2 <- NULL 
+#interest rates are valid (bank determines them) but the outliers are not really that bad
+#and the values make sense, so we don't remove any of them (see boxplots)
+b_mp2 <- NULL #valid payments but gradual increase of our outlier, 922 outliers but there are 
 #no crazy values so we keep them
 b_nb2 <- NULL #Very important! Don't drop these! 
 #this shows us that the people that take out a loan are people with 0 or 7 bankruptcies! 

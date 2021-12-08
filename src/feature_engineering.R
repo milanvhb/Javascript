@@ -1,3 +1,39 @@
+#Import possible datasets
+train <- read.csv("../data/silver/train_cleaned_data.csv")
+#train <- read.csv("../data/silver/train_cleaned_less_restrictive_data.csv")
+#train <- read.csv("../data/silver/train_cleaned_NA_data.csv")
+#train <- read.csv("../data/silver/train_cleaned_with_outlier.csv")
+test_X_fe <- read.csv("../data/silver/test_cleaned_data.csv")
+
+train_X_fe <- subset(train, select = -c(default))
+train_y <- train$default
+
+#########################################################
+#1. TURNING INDIVIDUAL FEATURES INTO MORE USABLE FEATURES
+#########################################################
+
+####
+#HOUSE_TYPE
+####
+
+#We check all possible values for home status and see that the NONE or ANY column are extra
+unique(train_X_fe$home_status) #MORTAGE RENT OWN NONE OTHER ANY
+unique(test_X_fe$home_status) #MORTGAGE RENT OWN OTHER
+
+#We will Register the "ANY" observations as "OTHER" observations and retain the "NONE" 
+#observations (the "NONE" column functions as NA indicator)
+train_X_fe$home_status[train_X_fe$home_status == "ANY"] <- "OTHER"
+#The NONE information will be seen as an NA value which we impute with the mode of "
+table(train_X_fe$home_status) #MORTAGE is the mode
+train_X_fe$home_status[train_X_fe$home_status == "NONE"] <- "MORTGAGE"
+
+
+###
+#...
+###
+
+#ALS JE VERDER GAAT MET DE DATA HIER ONDER KIJK DAN OF JE DE JUISTE DATASETS ENZO GEBRUIKT
+
 #################################
 # 1.ENCODING CATEGORICAL DATA ###   
 #################################
