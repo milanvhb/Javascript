@@ -221,7 +221,8 @@ b_ir2 <- NULL
 b_mp2 <- NULL #valid payments but gradual increase of our outlier, 922 outliers but there are 
 #no crazy values so we keep them
 b_nb2 <- NULL #Very important! Don't drop these! 
-#this shows us that the people that take out a loan are people with 0 or 7 bankruptcies! 
+#this shows us that the people that take out a loan are people with 0 or 7 bankruptcies!
+#This clearly shows some kind of relationship!
 b_nm2 <- abs(scale(train_X_outlier$num_mortgages)) < 3 #the values are up to three times more
 #than the limit of our boxplot, we do remove these values
 b_oc2 <- abs(scale(train_X_outlier$num_open_credit)) < 3 #almost all of the observations are 
