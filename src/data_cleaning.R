@@ -141,21 +141,21 @@ handle_outlier_z <- function(col){
 num.cols <- sapply(train_X_impute, is.numeric) 
 all_cols <- colnames(train_X)[num.cols]
 for (i in all_cols[2:13]){
-  print(paste0("column name:",i,"  ",sum(scale(train_X_outlier[i])>3)))
+  print(paste0("column name:",i,"  ",sum(abs(scale(train_X_outlier[i]))>3)))
 }
 
 #we create all the conditions for which rows we want to remove because they contain an outlier
-b_ai <- (scale(train_X_outlier$annual_income) < 3)
-b_dti <- scale(train_X_outlier$debt_to_income) < 3
-b_ir <- scale(train_X_outlier$interest_rate) < 3
-b_mp <- scale(train_X_outlier$monthly_payment) < 3
-b_nb <- scale(train_X_outlier$num_bankrupts) < 3
-b_nm <- scale(train_X_outlier$num_mortgages) < 3
-b_oc <- scale(train_X_outlier$num_open_credit) < 3
-b_nr <- scale(train_X_outlier$num_records) < 3
-b_ntc <- scale(train_X_outlier$num_total_credit) < 3
-b_rb <- scale(train_X_outlier$revol_balance) < 3
-b_ru <- scale(train_X_outlier$revol_util) < 3
+b_ai <- abs(scale(train_X_outlier$annual_income)) < 3
+b_dti <- abs(scale(train_X_outlier$debt_to_income)) < 3
+b_ir <- abs(scale(train_X_outlier$interest_rate)) < 3
+b_mp <- abs(scale(train_X_outlier$monthly_payment)) < 3
+b_nb <- abs(scale(train_X_outlier$num_bankrupts)) < 3
+b_nm <- abs(scale(train_X_outlier$num_mortgages)) < 3
+b_oc <- abs(scale(train_X_outlier$num_open_credit)) < 3
+b_nr <- abs(scale(train_X_outlier$num_records)) < 3
+b_ntc <- abs(scale(train_X_outlier$num_total_credit)) < 3
+b_rb <- abs(scale(train_X_outlier$revol_balance)) < 3
+b_ru <- abs(scale(train_X_outlier$revol_util)) < 3
 
 #we subset from our original dataset for which the outlier conditions are ALWAYS true,
 #in other words, if one of the conditions is false we drop the whole row
@@ -166,3 +166,4 @@ write.csv(new_train_x, file= "../data/silver/train_cleaned_data.csv")
 write.csv(new_test_x, file= "../data/silver/test_cleaned_data.csv")
 
 #we omitted 70954 -> 64943 = 6011 rows from our dataset
+
