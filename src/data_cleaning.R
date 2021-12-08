@@ -1,26 +1,24 @@
 install.packages("gmodels")
 library(gmodels)
-library(corrplot)
-library(RColorBrewer)
 
 
 ### DATA CLEANING ###
-train <- read.csv("train.csv")
-test_X <- read.csv("test.csv")
+#Import datasets, don't forget to set working directory to source file location
+train <- read.csv("../data/bronze/train.csv")
+test_X <- read.csv("../data/bronze/test.csv")
 head(train)
 
-train_X <- subset(train, select = -c(default))
-train_y <- train$default
+train_X <- train
+
 ls.str(train_X)
 
 CrossTable(train$default)
 CrossTable(train$num_bankrupts)
-CrossTable(train_X_fe$state)
-train_X_fe[train_X_fe$state == 'W']
 
-############################
-# 1. IMPUTE MISSING VALUES #
-############################
+
+#########################################
+# 1. SPOT NA VALUES AND IMPUTE NA FLAGS #
+#########################################
 
 train_X_impute <- train_X
 test_X_impute <- test_X
@@ -48,12 +46,10 @@ colMeans(is.na(test_X_impute))
 #------#
 
 
-
 #Some variables are self reported by the borrower. These missing 
 #values could be interesting for our analysis. 
 #That's why we will create indicator columns for annual_income,
 #emp_title, and HomeStatus
-
 
 naFlag <- function(df, df_val = NULL) {
   if (is.null(df_val)) {
@@ -71,26 +67,18 @@ train_X_impute <- cbind(train_X_impute,
 test_X_impute <- cbind(test_X_impute,
                        naFlag(df = test_X, df_val = train_X))
 
-# ONLY KEEP THE FLAG FOR HOME_STATUS
+#FOR NOW WE KEEP THE NA FLAGS FOR ALL VARIABLES, HOWEVER THE MISSING VALUES FOR HOUSE
+#ARE 25% SO MAYBE ONLY THIS NA FLAG MIGHT TELL US SOMETHING AND WE CAN DROP THE REST? 
+#WE'LL SEE
 
-cols.dont.want <- c('annual_income_flag', 
-                    'emp_length_flag',
-                    'emp_title_flag',
-                    'monthly_payment_flag',
-                    'num_bankrupts_flag',
-                    'num_mortgages_flag',
-                    'num_records_flag'  ,
-                    'num_total_credit_flag',
-                    'revol_util_flag')
+##################################################
+#2. Inputing mean and mode values in missing data. 
+##################################################
 
-
-train_X_impute = train_X_impute[ , ! names(train_X_impute) %in% cols.dont.want]
-test_X_impute = test_X_impute[ , ! names(test_X_impute) %in% cols.dont.want]
-
+#All data is lower than 25% missing so we can still accept this data and inpute values
 # NOW WE ARE GOING TO IMPUTE NUMERIC VARIABLES WITH MEAN AND CATEGORICAL VALUES WITH MODE
-            
 
-
+#define the functions for imputing mean and mode            
 impute <- function(x, method = mean, val = NULL) {
   if (is.null(val)) {
     val <- method(x, na.rm = TRUE)
@@ -106,17 +94,11 @@ modus <- function(x, na.rm = FALSE) {
 }
 
 
-
-
+#determine the numeric columns and impute mean value in the train and test set
 num.cols <- sapply(train_X_impute, is.numeric) 
 train_X_impute[, num.cols] <- lapply(train_X_impute[, num.cols],
                                      FUN = impute,
                                      method = mean)
-#--------------------------------------------------------------STRANGE
-test_X_impute[, num.cols] <- mapply(test_X_impute[, num.cols],
-                                    FUN = impute,
-                                    val = mean(train_X$num.cols ,na.rm = T))
-# This code doesnt work, so I do it in the cumbersome way :
 
 test_X_impute$annual_income <- impute(test_X_impute$annual_income, val = mean(train_X$annual_income, na.rm = T))
 test_X_impute$num_bankrupts <- impute(test_X_impute$num_bankrupts, val = mean(train_X$num_bankrupts, na.rm = T))
@@ -126,11 +108,7 @@ test_X_impute$num_total_credit <- impute(test_X_impute$num_total_credit, val = m
 test_X_impute$revol_util    <- impute(test_X_impute$revol_util, val = mean(train_X$revol_util, na.rm = T))
 test_X_impute$monthly_payment <- impute(test_X_impute$monthly_payment, val = mean(train_X$monthly_payment, na.rm = T))
 
-#----------------------------------------------------------------------STRANGE
-
-
-
-
+#determine the categoric columns and impute the mode in the train and test set
 cat.cols <- !num.cols
 train_X_impute[, cat.cols] <- lapply(train_X_impute[, cat.cols],
                                      FUN = impute,
@@ -139,39 +117,52 @@ test_X_impute[, cat.cols] <- mapply(test_X_impute[, cat.cols],
                                     FUN = impute,
                                     val = sapply(train_X[, cat.cols], modus, na.rm = T))
 
-
+#We double check our results and spot no more missing values for both the test and train set
 colMeans(is.na(train_X_impute))  # -->no more missing values       
 colMeans(is.na(test_X_impute))   # -->no more missing values
 
 
+###############################
+# 3. REMOVING OUTLIERS      ###   
+###############################
+
+train_X_outlier = train_X_impute
+test_X_outlier = test_X_impute
+
+#let's define a function that removes outliers, but we don't really use it
+handle_outlier_z <- function(col){
+  col_z <- scale(col)
+  ifelse(abs(col_z)>3,
+         sign(col_z)*3*attr(col_z,"scaled:scale") + attr(col_z,"scaled:center"), col)
+}
 
 
-?sapply
+#below we can find a easy for loop that shows us which numeric variables contain outliers
+num.cols <- sapply(train_X_impute, is.numeric) 
+all_cols <- colnames(train_X)[num.cols]
+for (i in all_cols[2:13]){
+  print(paste0("column name:",i,"  ",sum(scale(train_X_outlier[i])>3)))
+}
 
+#we create all the conditions for which rows we want to remove because they contain an outlier
+b_ai <- (scale(train_X_outlier$annual_income) < 3)
+b_dti <- scale(train_X_outlier$debt_to_income) < 3
+b_ir <- scale(train_X_outlier$interest_rate) < 3
+b_mp <- scale(train_X_outlier$monthly_payment) < 3
+b_nb <- scale(train_X_outlier$num_bankrupts) < 3
+b_nm <- scale(train_X_outlier$num_mortgages) < 3
+b_oc <- scale(train_X_outlier$num_open_credit) < 3
+b_nr <- scale(train_X_outlier$num_records) < 3
+b_ntc <- scale(train_X_outlier$num_total_credit) < 3
+b_rb <- scale(train_X_outlier$revol_balance) < 3
+b_ru <- scale(train_X_outlier$revol_util) < 3
 
+#we subset from our original dataset for which the outlier conditions are ALWAYS true,
+#in other words, if one of the conditions is false we drop the whole row
+new_train_x <- subset(train_X_outlier, (b_ai&b_dti&b_ir&b_mp&b_nb&b_nm&b_oc&b_nr&b_ntc&b_rb&b_ru))
+new_test_x <- subset(test_X_outlier, (b_ai&b_dti&b_ir&b_mp&b_nb&b_nm&b_oc&b_nr&b_ntc&b_rb&b_ru))
 
-#################################
-# 2.BINNING NUMERIC VARIABLES ###   
-#################################
+write.csv(new_train_x, file= "../data/silver/train_cleaned_data.csv")
+write.csv(new_test_x, file= "../data/silver/test_cleaned_data.csv")
 
-
-# Binning often improves performance
-
-head(train_X_impute)
-M <-cor(train_X_impute[sapply(train_X_impute,is.numeric)])
-corrplot(M, type="upper", order="hclust",col=brewer.pal(n=8, name="RdYlBu"))
-
-
-
-#################################
-# 3. LEAVE OUT VARIABLES      ###   
-#################################
-
-# For now we'll leave out the date columns. 
-
-cols.to.drop <- c('earliest_cr_line', 'date_funded', 'address')
-train_X_impute = train_X_impute[ , ! names(train_X_impute) %in% cols.to.drop]
-test_X_impute = test_X_impute[ , ! names(test_X_impute) %in% cols.to.drop]
-
-
-
+#we omitted 70954 -> 64943 = 6011 rows from our dataset
