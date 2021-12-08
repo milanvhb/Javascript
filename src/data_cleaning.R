@@ -160,10 +160,16 @@ b_ru <- abs(scale(train_X_outlier$revol_util)) < 3
 #we subset from our original dataset for which the outlier conditions are ALWAYS true,
 #in other words, if one of the conditions is false we drop the whole row
 new_train_x <- subset(train_X_outlier, (b_ai&b_dti&b_ir&b_mp&b_nb&b_nm&b_oc&b_nr&b_ntc&b_rb&b_ru))
-new_test_x <- subset(test_X_outlier, (b_ai&b_dti&b_ir&b_mp&b_nb&b_nm&b_oc&b_nr&b_ntc&b_rb&b_ru))
+
 
 write.csv(new_train_x, file= "../data/silver/train_cleaned_data.csv")
-write.csv(new_test_x, file= "../data/silver/test_cleaned_data.csv")
 
 #we omitted 70954 -> 64943 = 6011 rows from our dataset
+
+
+###############################
+# 4. REMOVING SPECIFIC OUTLIERS 
+###############################
+
+
 
