@@ -160,9 +160,10 @@ b_ru <- abs(scale(train_X_outlier$revol_util)) < 3
 #we subset from our original dataset for which the outlier conditions are ALWAYS true,
 #in other words, if one of the conditions is false we drop the whole row
 new_train_x <- subset(train_X_outlier, (b_ai&b_dti&b_ir&b_mp&b_nb&b_nm&b_oc&b_nr&b_ntc&b_rb&b_ru))
-
+new_test_x <- test_X_outlier
 
 write.csv(new_train_x, file= "../data/silver/train_cleaned_data.csv")
+write.csv(new_test_x, file = "../data/silver/test_cleaned_data.csv")
 
 #we omitted 70954 -> 64943 = 6011 rows from our dataset
 
@@ -171,5 +172,15 @@ write.csv(new_train_x, file= "../data/silver/train_cleaned_data.csv")
 # 4. REMOVING SPECIFIC OUTLIERS 
 ###############################
 
-
+b_ai <- abs(scale(train_X_outlier$annual_income)) < 3
+b_dti <- abs(scale(train_X_outlier$debt_to_income)) < 3
+b_ir <- abs(scale(train_X_outlier$interest_rate)) < 3
+b_mp <- abs(scale(train_X_outlier$monthly_payment)) < 3
+b_nb <- abs(scale(train_X_outlier$num_bankrupts)) < 3
+b_nm <- abs(scale(train_X_outlier$num_mortgages)) < 3
+b_oc <- abs(scale(train_X_outlier$num_open_credit)) < 3
+b_nr <- abs(scale(train_X_outlier$num_records)) < 3
+b_ntc <- abs(scale(train_X_outlier$num_total_credit)) < 3
+b_rb <- abs(scale(train_X_outlier$revol_balance)) < 3 #
+b_ru <- abs(scale(train_X_outlier$revol_util)) < 3 #only three outliers, we can remove them
 
