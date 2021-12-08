@@ -223,19 +223,17 @@ b_mp2 <- NULL #valid payments but gradual increase of our outlier, 922 outliers 
 b_nb2 <- NULL #Very important! Don't drop these! 
 #this shows us that the people that take out a loan are people with 0 or 7 bankruptcies!
 #This clearly shows some kind of relationship!
-b_nm2 <- abs(scale(train_X_outlier$num_mortgages)) < 3 #the values are up to three times more
-#than the limit of our boxplot, we do remove these values
-b_oc2 <- abs(scale(train_X_outlier$num_open_credit)) < 3 #almost all of the observations are 
-#contained up until thirty so we remove the outliers
-b_nr2 <- abs(scale(train_X_outlier$num_records)) < 3 #99% is contained in the first three
-#categories of number of records so we remove the outliers
-b_ntc2 <- abs(scale(train_X_outlier$num_total_credit)) < 3 #majority of the observations are 
-#normally distributed so we remove the outliers
+b_nm2 <- NULL #we can bin our results and thus decrease the number of possibilities
+b_oc2 <- NULL #We won't remove these values
+#as we can simply bin our categories?
+b_nr2 <- NULL #We will not remove these outliers as
+#we will simply bin all our observations according to 0 1 or 2+
+b_ntc2 <- NULL #we will bin our results to contain the multiple values
 b_rb2 <- NULL #outliers are very close to the boxplots so
 #keep them, also no steep increase but a gradual increase in outliers
 b_ru2 <- abs(scale(train_X_outlier$revol_util)) < 3 #only three outliers, we can remove them
 
-new_train_x2 <- subset(train_X_outlier, (b_ai2&b_dti2&b_nm2&b_oc2&b_nr2&b_ntc2&b_ru2))
+new_train_x2 <- subset(train_X_outlier, (b_ai2&b_dti2&b_ru2))
 
 #We have 66407 rows se we removed 4547 rows
 
