@@ -27,6 +27,9 @@ train_X_fe$home_status[train_X_fe$home_status == "ANY"] <- "OTHER"
 table(train_X_fe$home_status) #MORTAGE is the mode
 train_X_fe$home_status[train_X_fe$home_status == "NONE"] <- "MORTGAGE"
 
+#check
+head(train_X_fe)
+head(test_X_fe)
 
 ########################
 #GRADE AND SUB_GRADE
@@ -47,7 +50,83 @@ subgrade_levels <- c("A1", "A2", "A3", "A4", "A5",
                      "F1", "F2", "F3", "F4", "F5")
 train_X_fe$sub_grade <- as.numeric(factor(train_X_fe$sub_grade, levels = subgrade_levels))
 test_X_fe$sub_grade <- as.numeric(factor(test_X_fe$sub_grade, levels = subgrade_levels))
-train_X_fe$sub_grade
+
+#check
+head(train_X_fe)
+head(test_X_fe)
+
+########################
+#DATE_FUNDED and EARLIEST_CR_LINE ---> YEARS_CUSTOMERS
+########################
+
+
+# Making new column: years_customers, which expresses how long the customer has been customer on the moment the loan is started 
+# years_customer = date_funded - earliest cr line (date at which loan is funded - date at which customer started first loan)
+#afterwards: drop columns date funded and earliest cr line. 
+
+match <- regmatches(train_X_fe$date_funded, regexec("[0-9]{4}", train_X_fe$date_funded))
+train_X_fe$date_funded <- sapply(match, `[`, 1)
+match2 <- regmatches(test_X_fe$date_funded, regexec("[0-9]{4}", test_X_fe$date_funded))
+test_X_fe$date_funded <- sapply(match2, `[`, 1)
+match3 <- regmatches(train_X_fe$earliest_cr_line, regexec("[0-9]{4}", train_X_fe$earliest_cr_line))
+train_X_fe$earliest_cr_line <- sapply(match3, `[`, 1)
+match4 <- regmatches(test_X_fe$earliest_cr_line, regexec("[0-9]{4}", test_X_fe$earliest_cr_line))
+test_X_fe$earliest_cr_line <- sapply(match4, `[`, 1)
+train_X_fe$date_funded <- as.numeric(train_X_fe$date_funded)
+train_X_fe$earliest_cr_line <- as.numeric(train_X_fe$earliest_cr_line)
+test_X_fe$date_funded <- as.numeric(test_X_fe$date_funded)
+test_X_fe$earliest_cr_line <- as.numeric(test_X_fe$earliest_cr_line)
+train_X_fe$year_customer <- train_X_fe$date_funded - train_X_fe$earliest_cr_line 
+test_X_fe$years_customer <- test_X_fe$date_funded - test_X_fe$earliest_cr_line 
+
+#drop column date_funded and earliest_cr_line: 
+train_X_fe <- subset(train_X_fe, select = -c(date_funded,earliest_cr_line))
+test_X_fe <- subset(test_X_fe, select=  -c(date_funded,earliest_cr_line))
+
+#check
+head(train_X_fe)
+head(test_X_fe)
+
+
+########################
+#INCOME_VERIF_STATUS
+########################
+cats <- categories(data.frame(train_X_fe$income_verif_status))
+cats
+# apply on train set (exclude reference categories)
+dummies_train <- dummy(data.frame(train_X_fe$income_verif_status),object = cats)
+dummies_train
+#rename vars: 
+names(dummies_train)[1] <- "income_status_not_verified"
+names(dummies_train)[2] <- "income_status_source_verified"
+names(dummies_train)[3] <- "income_status_verified"
+
+#exclude reference category (first column): 
+dummies_train <- subset(dummies_train, select = -c(income_status_not_verified))
+
+head(test_X_fe$income_verif_status)
+# apply on test set: 
+dummies_test <- dummy(data.frame(test_X_fe$income_verif_status)) #object = cats needs to be added as argument but it throws an error idk y)
+dummies_test
+names(dummies_test)[1] <- "income_status_not_verified"
+names(dummies_test)[2] <- "income_status_source_verified"
+names(dummies_test)[3] <- "income_status_verified"
+
+#Exclude reference category 
+dummies_test <- subset(dummies_test, select = -c(income_status_not_verified))
+#check 
+head(dummies_test)
+
+## merge with overall training set
+train_X_fe <- subset(train_X_fe, select = -c(income_verif_status))
+train_X_fe <- cbind(train_X_fe, dummies_train)
+## merge with overall test set
+test_X_fe <- subset(test_X_fe, select = -c(income_verif_status))
+test_X_fe <- cbind(test_X_fe, dummies_test)
+
+#check
+head(train_X_fe)
+head(test_X_fe)
 
 
 
