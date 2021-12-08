@@ -12,9 +12,9 @@ train_y <- train$default
 #1. TURNING INDIVIDUAL FEATURES INTO MORE USABLE FEATURES
 #########################################################
 
-####
+############
 #HOUSE_TYPE
-####
+############
 
 #We check all possible values for home status and see that the NONE or ANY column are extra
 unique(train_X_fe$home_status) #MORTAGE RENT OWN NONE OTHER ANY
@@ -28,9 +28,30 @@ table(train_X_fe$home_status) #MORTAGE is the mode
 train_X_fe$home_status[train_X_fe$home_status == "NONE"] <- "MORTGAGE"
 
 
-###
-#...
-###
+########################
+#GRADE AND SUB_GRADE
+########################
+
+# making the categorical variables grade and sub_grade ordinal: rating A is better than C, and A1 is better than A5 
+
+unique(train_X_fe$grade)
+unique(train_X_fe$sub_grade)
+grade_levels <- c("A", "B", "C", "D", "E", "F", "G")
+train_X_fe$grade <- as.numeric(factor(train_X_fe$grade, levels = grade_levels))
+test_X_fe$grade <- as.numeric(factor(test_X_fe$grade, levels = grade_levels))
+subgrade_levels <- c("A1", "A2", "A3", "A4", "A5",
+                     "B1", "B2", "B3", "B4", "B5",
+                     "C1", "C2", "C3", "C4", "C5",
+                     "D1", "D2", "D3", "D4", "D5",
+                     "E1", "E2", "E3", "E4", "E5",
+                     "F1", "F2", "F3", "F4", "F5")
+train_X_fe$sub_grade <- as.numeric(factor(train_X_fe$sub_grade, levels = subgrade_levels))
+test_X_fe$sub_grade <- as.numeric(factor(test_X_fe$sub_grade, levels = subgrade_levels))
+train_X_fe$sub_grade
+
+
+
+#------------------------
 
 #ALS JE VERDER GAAT MET DE DATA HIER ONDER KIJK DAN OF JE DE JUISTE DATASETS ENZO GEBRUIKT
 
