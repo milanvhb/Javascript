@@ -12,8 +12,52 @@ train_y <- train$default
 #1. TURNING INDIVIDUAL FEATURES INTO MORE USABLE FEATURES
 #########################################################
 
+
 ############
-#HOUSE_TYPE
+#ADDRESS
+############
+
+#States? dummy var? 
+
+
+
+############
+#AMOUNT, ANNUAL_INCOME, DEBT_TO_INCOME, INTEREST_RATE, MONTHLY_PAYMENT, NUM_BANKRUPTS, 
+#NUM_MORTGAGES, NUM_OPEN_CREDIT, NUM_RECORDS, NUM_TOTAL_CREDIT, REVOL_BALANCE, REVOL_UTIL
+############
+
+#nothing, numerical variable: standardizing: see later
+
+
+############
+#TERM
+############
+
+
+############
+#APPLICATION_TYPE 
+############
+
+
+
+
+############
+#EMP_LENGTH
+############
+
+
+
+
+
+############
+#EMP_TITLE
+############
+
+
+
+
+############
+#HOME_STATUS
 ############
 
 #We check all possible values for home status and see that the NONE or ANY column are extra
@@ -127,6 +171,7 @@ test_X_fe <- cbind(test_X_fe, dummies_test)
 #check
 head(train_X_fe)
 head(test_X_fe)
+
 
 
 
