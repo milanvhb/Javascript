@@ -10,9 +10,9 @@ test_X_fe <- read.csv("../data/silver/test_cleaned_data.csv")
 train_X_fe <- subset(train, select = -c(default))
 train_y <- train$default
 
-#########################################################
-#1. TURNING INDIVIDUAL FEATURES INTO MORE USABLE FEATURES
-#########################################################
+############################################################################################
+#1. TURNING INDIVIDUAL FEATURES INTO MORE USABLE FEATURES: GENERAL APPROACH FOR ALL DATASETS
+############################################################################################
 
 
 ############
@@ -131,7 +131,7 @@ train_X_fe$date_funded <- as.numeric(train_X_fe$date_funded)
 train_X_fe$earliest_cr_line <- as.numeric(train_X_fe$earliest_cr_line)
 test_X_fe$date_funded <- as.numeric(test_X_fe$date_funded)
 test_X_fe$earliest_cr_line <- as.numeric(test_X_fe$earliest_cr_line)
-train_X_fe$year_customer <- train_X_fe$date_funded - train_X_fe$earliest_cr_line 
+train_X_fe$years_customer <- train_X_fe$date_funded - train_X_fe$earliest_cr_line 
 test_X_fe$years_customer <- test_X_fe$date_funded - test_X_fe$earliest_cr_line 
 
 #drop column date_funded and earliest_cr_line: 
@@ -183,6 +183,53 @@ test_X_fe <- cbind(test_X_fe, dummies_test)
 head(train_X_fe)
 head(test_X_fe)
 
+
+############################################################################################
+#2. TURNING INDIVIDUAL FEATURES INTO MORE USABLE FEATURES: FOR USING SPECIFIC DATASETS OR MODELS
+############################################################################################
+
+#WHEN WE USE THE TRAIN_CLEAND_LESS_RESTRICTIVE_DATA WE DONT REMOVE A LOT OF OUR LARGER OUTLIERS
+#SO THATS WHY WE WILL BIN THESE VARIABLES
+
+####
+#num_open_credit
+###
+n_oc_freq <- bin_data_frequency(train_X_fe$num_open_credit, train_X_fe$num_open_credit, bins = 9)
+#1 = [0,6(
+#2 = [6,7(
+#3 = [7,9(
+#4 = [9,10(
+#5 = [10,11(
+#6 = [11,13(
+#7 = [13,14(
+#8 = [14,18(
+#9 = [18,52(
+
+#assign the binned value
+train_X_fe$num_open_credit <-as.numeric(n_oc_freq)
+
+###
+#num_total_credit
+###
+n_tc_freq <- bin_data_frequency(train_X_fe$num_total_credit, train_X_fe$num_total_credit, bins = 20)
+#1 = [3,9(
+#2 = [9,11(
+#...
+train_X_fe$num_total_credit <- as.numeric(n_tc_freq)
+
+###
+#num_mortgages
+###
+
+#every value where we have more than 7 mortgages are combined to one big group
+train_X_fe$num_mortgages[train_X_fe$num_mortgages >= 7] <- 7
+
+###
+#num_records
+###
+
+#every value where we have more than 2 records are combined in to one big group
+train_X_fe$num_records[train_X_fe$num_records >= 2] <- 2
 
 
 
