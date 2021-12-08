@@ -1,4 +1,6 @@
-#Import possible datasets
+  #Import possible datasets
+install.packages("dummy")
+library(dummy)
 train <- read.csv("../data/silver/train_cleaned_data.csv")
 #train <- read.csv("../data/silver/train_cleaned_less_restrictive_data.csv")
 #train <- read.csv("../data/silver/train_cleaned_NA_data.csv")
@@ -94,19 +96,15 @@ head(test_X_fe)
 
 # making the categorical variables grade and sub_grade ordinal: rating A is better than C, and A1 is better than A5 
 
-unique(train_X_fe$grade)
-unique(train_X_fe$sub_grade)
-grade_levels <- c("A", "B", "C", "D", "E", "F", "G")
-train_X_fe$grade <- as.numeric(factor(train_X_fe$grade, levels = grade_levels))
-test_X_fe$grade <- as.numeric(factor(test_X_fe$grade, levels = grade_levels))
-subgrade_levels <- c("A1", "A2", "A3", "A4", "A5",
-                     "B1", "B2", "B3", "B4", "B5",
-                     "C1", "C2", "C3", "C4", "C5",
-                     "D1", "D2", "D3", "D4", "D5",
-                     "E1", "E2", "E3", "E4", "E5",
-                     "F1", "F2", "F3", "F4", "F5")
-train_X_fe$sub_grade <- as.numeric(factor(train_X_fe$sub_grade, levels = subgrade_levels))
-test_X_fe$sub_grade <- as.numeric(factor(test_X_fe$sub_grade, levels = subgrade_levels))
+encode_ordinal <- function(x, order = unique(x)){
+  x <- as.numeric(factor(x, levels = order, exclude = NULL))
+  x
+}
+
+train_X_fe[["grade_enc"]]<-encode_ordinal(train_X_fe[["grade"]],sort(unique(train_X_fe$grade)))
+train_X_fe[["sub_grade_enc"]]<-encode_ordinal(train_X_fe[["sub_grade"]],sort(unique(train_X_fe$sub_grade)))
+train_X_fe
+
 
 #check
 head(train_X_fe)
