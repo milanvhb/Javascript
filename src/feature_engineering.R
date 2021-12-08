@@ -34,10 +34,23 @@ train_y <- train$default
 ############
 
 
+
+
+
+############
+#PURPOSE
+############
+
+#dummies 
+
+
+
+
 ############
 #APPLICATION_TYPE 
 ############
 
+#dummies
 
 
 
@@ -45,7 +58,7 @@ train_y <- train$default
 #EMP_LENGTH
 ############
 
-
+#ordinal? 
 
 
 
