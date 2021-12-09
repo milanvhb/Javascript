@@ -1,11 +1,11 @@
   #Import possible datasets
-install.packages("dummy")
+#install.packages("dummy")
 library(dummy)
-train <- read.csv("../data/silver/train_cleaned_data.csv")
-#train <- read.csv("../data/silver/train_cleaned_less_restrictive_data.csv")
+#train <- read.csv("../data/silver/train_cleaned_data.csv")
+train <- read.csv("./data/silver/train_cleaned_less_restrictive_data.csv")
 #train <- read.csv("../data/silver/train_cleaned_NA_data.csv")
 #train <- read.csv("../data/silver/train_cleaned_with_outlier.csv")
-test_X_fe <- read.csv("../data/silver/test_cleaned_data.csv")
+test_X_fe <- read.csv("./data/silver/test_cleaned_data.csv")
 
 train_X_fe <- subset(train, select = -c(default))
 train_y <- train$default
@@ -194,6 +194,7 @@ head(test_X_fe)
 ####
 #num_open_credit
 ###
+#waar staat functie bin_data_frequency? 
 n_oc_freq <- bin_data_frequency(train_X_fe$num_open_credit, train_X_fe$num_open_credit, bins = 9)
 #1 = [0,6(
 #2 = [6,7(
@@ -231,8 +232,51 @@ train_X_fe$num_mortgages[train_X_fe$num_mortgages >= 7] <- 7
 #every value where we have more than 2 records are combined in to one big group
 train_X_fe$num_records[train_X_fe$num_records >= 2] <- 2
 
+##
+#term
+##
 
+table(train_X_fe$term)
+table(test_X_fe$term)
+#make categories of "36months" and "60months"
+cats <- categories(data.frame(train_X_fe$term))
+cats
 
+#apply dummy function on train
+dummies_train <- dummy(data.frame(train_X_fe$term),object = cats)
+head(dummies_train)
+
+#change names 
+names(dummies_train)[1] = "term_36months"
+names(dummies_train)[2] = "term_60months"
+head(dummies_train)
+
+#drop reference category "36months"
+dummies_train <- subset(dummies_train, select = -c(term_36months))
+head(dummies_train)
+
+#apply dummy function on test
+dummies_test <- dummy(data.frame(test_X_fe$term))
+head(dummies_test)
+
+#change names 
+names(dummies_test)[1] = "term_36months"
+names(dummies_test)[2] = "term_60months"
+head(dummies_test)
+
+#drop reference category
+dummies_test <- subset(dummies_test, select = -c(term_36months))
+head(dummies_test)
+
+# merge with overall training and test set by replacing original term column
+# 0 = 36months, 1 = 60months 
+train_X_fe$term <- dummies_train
+head(train_X_fe$term)
+table(train_X_fe$term)
+
+test_X_fe$term <- dummies_test
+head(test_X_fe$term)
+table(test_X_fe$term)
 #------------------------
 
 #ALS JE VERDER GAAT MET DE DATA HIER ONDER KIJK DAN OF JE DE JUISTE DATASETS ENZO GEBRUIKT
