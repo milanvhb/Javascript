@@ -282,7 +282,42 @@ test_X_fe$term <- dummies_test
 head(test_X_fe$term)
 table(test_X_fe$term)
 
+#####
+#employment_length
+#####
 
+#table overview
+table(train_X_fe$emp_length, useNA = "ifany")
+table(test_X_fe$emp_length, useNA = "ifany")
+head(train_X_fe$emp_length)
+
+#change >1 year to 0, otherwise both 1 and <1 will be in same column
+train_X_fe[train_X_fe$emp_length == "< 1 year", ] <- "0"
+test_X_fe[test_X_fe$emp_length == "< 1 year", ] <- "0"
+table(train_X_fe$emp_length, useNA = "ifany")
+
+#string manipulation
+idx_regecex_train <- regexec("\\d+", train_X_fe$emp_length)
+idx_regecex_test <- regexec("\\d+", test_X_fe$emp_length)
+head(idx_regecex_train)
+
+head(train_X_fe$emp_length)
+match_train <- regmatches(train_X_fe$emp_length, idx_regecex_train)
+match_test <- regmatches(test_X_fe$emp_length, idx_regecex_test)
+head(match_train)
+
+#apply to both test and train set
+train_X_fe$emp_length <- sapply(match_train, '[', 1)
+test_X_fe$emp_length <- sapply(match_test, '[', 1)
+head(train_X_fe$emp_length)
+table(train_X_fe$emp_length)
+table(test_X_fe$emp_length)
+
+#code years of employment as numeric
+##-> i'm not really sure about this? Might be categorical?
+str(train_X_fe$emp_length)
+train_X_fe$emp_length <- as.numeric(train_X_fe$emp_length)
+test_X_fe$emp_length <- as.numeric(test_X_fe$emp_length)
 #------------------------
 
 #ALS JE VERDER GAAT MET DE DATA HIER ONDER KIJK DAN OF JE DE JUISTE DATASETS ENZO GEBRUIKT
