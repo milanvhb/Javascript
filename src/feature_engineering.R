@@ -31,39 +31,42 @@ train_y <- train$default
 #nothing, numerical variable: standardizing: see later
 
 
-############
-#TERM
-############
+#####################
+#EMPLOYMENT_LENGTH
+#####################
 
-#binary coding: 
-#36 months --> 0 
-#60 months --> 1
+#table overview
+table(train_X_fe$emp_length, useNA = "ifany")
+table(test_X_fe$emp_length, useNA = "ifany")
+head(train_X_fe$emp_length)
 
+#change <1 year to 0, otherwise both 1 and <1 will be in same column
+train_X_fe[train_X_fe$emp_length == "< 1 year", ] <- "0"
+test_X_fe[test_X_fe$emp_length == "< 1 year", ] <- "0"
+table(train_X_fe$emp_length, useNA = "ifany")
 
+#string manipulation
+idx_regecex_train <- regexec("\\d+", train_X_fe$emp_length)
+idx_regecex_test <- regexec("\\d+", test_X_fe$emp_length)
+head(idx_regecex_train)
 
+head(train_X_fe$emp_length)
+match_train <- regmatches(train_X_fe$emp_length, idx_regecex_train)
+match_test <- regmatches(test_X_fe$emp_length, idx_regecex_test)
+head(match_train)
 
-############
-#PURPOSE
-############
+#apply to both test and train set
+train_X_fe$emp_length <- sapply(match_train, '[', 1)
+test_X_fe$emp_length <- sapply(match_test, '[', 1)
+head(train_X_fe$emp_length)
+table(train_X_fe$emp_length)
+table(test_X_fe$emp_length)
 
-#dummies 
-
-
-
-
-############
-#APPLICATION_TYPE 
-############
-
-#dummies
-
-
-
-############
-#EMP_LENGTH
-############
-
-#as numerical! 
+#code years of employment as numeric
+##-> i'm not really sure about this? Might be categorical? #I think it's right xpieter
+str(train_X_fe$emp_length)
+train_X_fe$emp_length <- as.numeric(train_X_fe$emp_length)
+test_X_fe$emp_length <- as.numeric(test_X_fe$emp_length)
 
 
 
@@ -92,7 +95,8 @@ train_X_fe$home_status[train_X_fe$home_status == "NONE"] <- "MORTGAGE"
 #check
 head(train_X_fe)
 head(test_X_fe)
-
+unique(train_X_fe$home_status)
+table(train_X_fe$home_status)
 ########################
 #GRADE AND SUB_GRADE
 ########################
@@ -146,47 +150,36 @@ head(train_X_fe)
 head(test_X_fe)
 
 
-########################
-#INCOME_VERIF_STATUS
-########################
-cats <- categories(data.frame(train_X_fe$income_verif_status))
+############
+#PURPOSE, TERM, APPLICATION_TYPE, INCOME_VERIF_STATUS, HOME_STATUS: DUMMY VARIABLES! 
+############
+cats <- categories(train_X_fe[,c("purpose","term","application_type","income_verif_status","home_status")])
 cats
-# apply on train set (exclude reference categories)
-dummies_train <- dummy(data.frame(train_X_fe$income_verif_status),object = cats)
-dummies_train
-#rename vars: 
-names(dummies_train)[1] <- "income_status_not_verified"
-names(dummies_train)[2] <- "income_status_source_verified"
-names(dummies_train)[3] <- "income_status_verified"
 
-#exclude reference category (first column): 
-dummies_train <- subset(dummies_train, select = -c(income_status_not_verified))
+dummies_train <- dummy(train_X_fe[,c("purpose","term","application_type","income_verif_status","home_status")], object = cats)
+head(dummies_train)
+#exclude reference categories: purpose_car,term_.36.months,application_type_DIRECT_PAY,income_verif_status_Not.Verified,home_status_OWN
+dummies_train <- subset(dummies_train, select = -c(purpose_car,term_.36.months,application_type_DIRECT_PAY,income_verif_status_Not.Verified,home_status_OWN))
+head(dummies_train)
 
-head(test_X_fe$income_verif_status)
-# apply on test set: 
-dummies_test <- dummy(data.frame(test_X_fe$income_verif_status)) #object = cats needs to be added as argument but it throws an error idk y)
-dummies_test
-names(dummies_test)[1] <- "income_status_not_verified"
-names(dummies_test)[2] <- "income_status_source_verified"
-names(dummies_test)[3] <- "income_status_verified"
-
-#Exclude reference category 
-dummies_test <- subset(dummies_test, select = -c(income_status_not_verified))
-#check 
+dummies_test <- dummy(test_X_fe[,c("purpose","term","application_type","income_verif_status","home_status")], object = cats)
 head(dummies_test)
 
+#exclude reference categories: 
+dummies_test <- subset(dummies_test, select = -c(purpose_car,term_.36.months,application_type_DIRECT_PAY,income_verif_status_Not.Verified,home_status_OWN))
+head(dummies_train)
+
 ## merge with overall training set
-train_X_fe <- subset(train_X_fe, select = -c(income_verif_status))
+train_X_fe <- subset(train_X_fe, select = -c(purpose,term,application_type,income_verif_status,home_status))
 train_X_fe <- cbind(train_X_fe, dummies_train)
 ## merge with overall test set
-test_X_fe <- subset(test_X_fe, select = -c(income_verif_status))
+test_X_fe <- subset(test_X_fe, select = -c(purpose,term,application_type,income_verif_status,home_status))
 test_X_fe <- cbind(test_X_fe, dummies_test)
 
-#check
-head(train_X_fe)
-head(test_X_fe)
 
-
+#check dimensions --> both test and training have 52 columns! 
+dim(train_X_fe)
+dim(test_X_fe)
 ############################################################################################
 #2. TURNING INDIVIDUAL FEATURES INTO MORE USABLE FEATURES: FOR USING SPECIFIC DATASETS OR MODELS
 ############################################################################################
@@ -236,88 +229,7 @@ train_X_fe$num_mortgages[train_X_fe$num_mortgages >= 7] <- 7
 #every value where we have more than 2 records are combined in to one big group
 train_X_fe$num_records[train_X_fe$num_records >= 2] <- 2
 
-##
-#term
-##
 
-table(train_X_fe$term)
-table(test_X_fe$term)
-#make categories of "36months" and "60months"
-cats <- categories(data.frame(train_X_fe$term))
-cats
-
-#apply dummy function on train
-dummies_train <- dummy(data.frame(train_X_fe$term),object = cats)
-head(dummies_train)
-
-#change names 
-names(dummies_train)[1] = "term_36months"
-names(dummies_train)[2] = "term_60months"
-head(dummies_train)
-
-#drop reference category "36months"
-dummies_train <- subset(dummies_train, select = -c(term_36months))
-head(dummies_train)
-
-#apply dummy function on test
-dummies_test <- dummy(data.frame(test_X_fe$term))
-head(dummies_test)
-
-#change names 
-names(dummies_test)[1] = "term_36months"
-names(dummies_test)[2] = "term_60months"
-head(dummies_test)
-
-#drop reference category
-dummies_test <- subset(dummies_test, select = -c(term_36months))
-head(dummies_test)
-
-# merge with overall training and test set by replacing original term column
-# 0 = 36months, 1 = 60months 
-train_X_fe$term <- dummies_train
-head(train_X_fe$term)
-table(train_X_fe$term)
-
-test_X_fe$term <- dummies_test
-head(test_X_fe$term)
-table(test_X_fe$term)
-
-#####
-#employment_length
-#####
-
-#table overview
-table(train_X_fe$emp_length, useNA = "ifany")
-table(test_X_fe$emp_length, useNA = "ifany")
-head(train_X_fe$emp_length)
-
-#change >1 year to 0, otherwise both 1 and <1 will be in same column
-train_X_fe[train_X_fe$emp_length == "< 1 year", ] <- "0"
-test_X_fe[test_X_fe$emp_length == "< 1 year", ] <- "0"
-table(train_X_fe$emp_length, useNA = "ifany")
-
-#string manipulation
-idx_regecex_train <- regexec("\\d+", train_X_fe$emp_length)
-idx_regecex_test <- regexec("\\d+", test_X_fe$emp_length)
-head(idx_regecex_train)
-
-head(train_X_fe$emp_length)
-match_train <- regmatches(train_X_fe$emp_length, idx_regecex_train)
-match_test <- regmatches(test_X_fe$emp_length, idx_regecex_test)
-head(match_train)
-
-#apply to both test and train set
-train_X_fe$emp_length <- sapply(match_train, '[', 1)
-test_X_fe$emp_length <- sapply(match_test, '[', 1)
-head(train_X_fe$emp_length)
-table(train_X_fe$emp_length)
-table(test_X_fe$emp_length)
-
-#code years of employment as numeric
-##-> i'm not really sure about this? Might be categorical?
-str(train_X_fe$emp_length)
-train_X_fe$emp_length <- as.numeric(train_X_fe$emp_length)
-test_X_fe$emp_length <- as.numeric(test_X_fe$emp_length)
 #------------------------
 
 #ALS JE VERDER GAAT MET DE DATA HIER ONDER KIJK DAN OF JE DE JUISTE DATASETS ENZO GEBRUIKT
